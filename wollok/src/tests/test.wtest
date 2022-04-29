@@ -1,0 +1,5 @@
+import main.example.pruebaTp
+
+test "el doble de 2 es 4" {
+	assert.equals(4, pruebaTp.doble(2))
+}
