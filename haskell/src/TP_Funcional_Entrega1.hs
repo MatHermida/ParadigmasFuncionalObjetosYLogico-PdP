@@ -1,4 +1,10 @@
-data Microprocesador = UnMicroprocesador {memoria :: [Int], acumuladorA :: Int, acumuladorB :: Int, programCounter :: Int, mensajeError :: String} deriving Show
+data Microprocesador = UnMicroprocesador {
+    memoria :: [Int],
+    acumuladorA :: Int,
+    acumuladorB :: Int,
+    programCounter :: Int,
+    mensajeError :: String
+} deriving Show
 
 xt8088 :: Microprocesador
 xt8088 = UnMicroprocesador {memoria = replicate 1024 0, acumuladorA=0, acumuladorB=0, programCounter=0, mensajeError= ""} 
@@ -7,43 +13,60 @@ at8086 :: Microprocesador
 at8086 = UnMicroprocesador {memoria = [1..20], acumuladorA = 0, acumuladorB = 0, programCounter = 0, mensajeError = ""}
 
 fp20 :: Microprocesador
-fp20 =UnMicroprocesador {memoria = [], acumuladorA = 7, acumuladorB = 24, programCounter = 0, mensajeError = ""}
+fp20 = UnMicroprocesador {memoria = [], acumuladorA = 7, acumuladorB = 24, programCounter = 0, mensajeError = ""}
 
+mapMemoria :: ([Int]->[Int]) -> Microprocesador -> Microprocesador
+mapMemoria func micro = micro {memoria = func.memoria $ micro}
+mapAcumA :: (Int->Int) -> Microprocesador -> Microprocesador
+mapAcumA func micro = micro {acumuladorA = func.acumuladorA $ micro}
+mapAcumB :: (Int->Int) -> Microprocesador -> Microprocesador
+mapAcumB func micro = micro {acumuladorB = func.acumuladorB $ micro}
+mapProgramCounter :: (Int->Int) -> Microprocesador -> Microprocesador
+mapProgramCounter func micro = micro {programCounter = func.programCounter $ micro}
+mapMsjError :: (String->String) -> Microprocesador -> Microprocesador
+mapMsjError func micro = micro {mensajeError = func.mensajeError $ micro}
 
-aumentoProgramCounter :: Microprocesador -> Int
-aumentoProgramCounter micro = programCounter micro + 1
+aumentarProgramCounter :: Microprocesador -> Microprocesador
+aumentarProgramCounter micro = mapProgramCounter (+1) micro
 
 nop :: Microprocesador -> Microprocesador
-nop micro = micro {programCounter = aumentoProgramCounter micro}
+nop = aumentarProgramCounter
 
 swap :: Microprocesador -> Microprocesador
-swap micro = micro {acumuladorA = acumuladorB micro, acumuladorB = acumuladorA micro, programCounter = aumentoProgramCounter micro}
+swap = aumentarProgramCounter.invertirAcumuladores
+
+invertirAcumuladores :: Microprocesador -> Microprocesador
+invertirAcumuladores micro = micro {acumuladorA = acumuladorB micro, acumuladorB = acumuladorA micro}
 
 add :: Microprocesador -> Microprocesador
-add micro = micro {acumuladorA = acumuladorA micro + acumuladorB micro, acumuladorB = 0, programCounter = aumentoProgramCounter micro}
+add micro = aumentarProgramCounter . mapAcumB (const 0) . mapAcumA (+ acumuladorB micro) $ micro
 
 divide :: Microprocesador -> Microprocesador
-divide micro | acumuladorB micro == 0 = micro {mensajeError = "Error: Division by Zero", programCounter = aumentoProgramCounter micro}
-             | otherwise = micro {acumuladorA = div (acumuladorA micro) (acumuladorB micro), acumuladorB = 0, programCounter = aumentoProgramCounter micro}
+divide micro = aumentarProgramCounter.divisionDeAcum $ micro
+
+divisionDeAcum :: Microprocesador -> Microprocesador
+divisionDeAcum micro
+    | acumuladorB micro == 0 = mapMsjError (const "Error: Division by Zero") micro
+    | otherwise = mapAcumB (const 0) . mapAcumA (flip div (acumuladorB micro)) $ micro
 
 lod :: Int -> Microprocesador -> Microprocesador
-lod direccion micro = micro {acumuladorA = memoria micro !! (direccion-1), programCounter = aumentoProgramCounter micro}
+lod direccion micro = aumentarProgramCounter.mapAcumA (const (memoria micro !! (direccion-1))) $ micro
 
 str :: Int -> Int -> Microprocesador -> Microprocesador
-str direccion valor micro = micro {memoria = reemplazaPosicionDeMemoria direccion valor (memoria micro), programCounter = aumentoProgramCounter micro}
+str direccion valor = aumentarProgramCounter.mapMemoria (transformarValorDePosicionDeLista direccion valor)
 
-reemplazaPosicionDeMemoria :: Int -> Int -> [Int] -> [Int]
-reemplazaPosicionDeMemoria direccion valor listaMemoria = (take (direccion-1) listaMemoria) ++ [valor] ++ (drop direccion listaMemoria)
+transformarValorDePosicionDeLista :: Int -> Int -> [Int] -> [Int]
+transformarValorDePosicionDeLista posicion valor lista = (take (posicion-1) lista) ++ [valor] ++ (drop posicion lista)
 
 lodv :: Int -> Microprocesador -> Microprocesador
-lodv valor micro = micro {acumuladorA = valor, programCounter = aumentoProgramCounter micro}
+lodv valor = aumentarProgramCounter.mapAcumA (const valor)
 
 
 avanza3Posiciones :: Microprocesador -> Microprocesador
-avanza3Posiciones micro = (nop.nop.nop) micro
+avanza3Posiciones = nop.nop.nop
 
 sumar10Y22 :: Microprocesador -> Microprocesador
-sumar10Y22 micro = (add.(lodv 22).swap.(lodv 10)) micro
+sumar10Y22 = add.(lodv 22).swap.(lodv 10)
 
 divide2Por0 :: Microprocesador -> Microprocesador
-divide2Por0 micro = (divide.(lod 1).swap.(lod 2).(str 2 0).(str 1 2)) micro
+divide2Por0 = divide.(lod 1).swap.(lod 2).(str 2 0).(str 1 2)
