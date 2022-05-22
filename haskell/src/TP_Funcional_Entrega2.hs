@@ -100,3 +100,22 @@ divide2Por0 = divide.(lod 1).swap.(lod 2).(str 2 0).(str 1 2)
 
 cargarPrograma :: Programa -> Instruccion
 cargarPrograma listaInstrucciones = mapMemoriaPrograma (const listaInstrucciones)
+
+
+
+ejecutarPrograma :: Instruccion
+ejecutarPrograma micro = aplicarListaDeInstruccionesAMicro (memoriaPrograma micro) micro 
+
+aplicarListaDeInstruccionesAMicro :: Programa -> Instruccion
+aplicarListaDeInstruccionesAMicro listaInstrucciones micro = foldr aplicarValorSiNoHayError micro (reverse listaInstrucciones)
+--aplicarListaDeInstruccionesAMicro listaInstrucciones micro = foldl (flip ($)) micro listaInstrucciones
+
+aplicarValorSiNoHayError :: Instruccion -> Instruccion
+aplicarValorSiNoHayError func micro 
+    | mensajeError micro == "" = func $ micro
+    | otherwise = micro
+
+ifnz :: Programa -> Instruccion
+ifnz listaInstrucciones micro 
+    | acumuladorA micro == 0 = micro
+    | otherwise = aplicarListaDeInstruccionesAMicro listaInstrucciones micro
