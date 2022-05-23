@@ -101,8 +101,6 @@ divide2Por0 = divide.(lod 1).swap.(lod 2).(str 2 0).(str 1 2)
 cargarPrograma :: Programa -> Instruccion
 cargarPrograma listaInstrucciones = mapMemoriaPrograma (const listaInstrucciones)
 
-
-
 ejecutarPrograma :: Instruccion
 ejecutarPrograma micro = aplicarListaDeInstruccionesAMicro (memoriaPrograma micro) micro 
 
@@ -119,3 +117,15 @@ ifnz :: Programa -> Instruccion
 ifnz listaInstrucciones micro 
     | acumuladorA micro == 0 = micro
     | otherwise = aplicarListaDeInstruccionesAMicro listaInstrucciones micro
+
+depurarPrograma :: Instruccion
+depurarPrograma micro = mapMemoriaPrograma (limpiarInstruccionesQueNoModifican micro) micro
+
+limpiarInstruccionesQueNoModifican :: Microprocesador -> Programa -> Programa
+limpiarInstruccionesQueNoModifican micro listaInstrucciones
+    | null listaInstrucciones = []
+    | acumuladoresYMemoriaEnCero.(head listaInstrucciones) $ micro = limpiarInstruccionesQueNoModifican micro (tail listaInstrucciones)
+    | otherwise = [head listaInstrucciones] ++ limpiarInstruccionesQueNoModifican micro (tail listaInstrucciones)
+
+acumuladoresYMemoriaEnCero :: Microprocesador -> Bool
+acumuladoresYMemoriaEnCero micro = (acumuladorA micro == 0) && (acumuladorB micro == 0) && (all (==0) (memoria micro))
