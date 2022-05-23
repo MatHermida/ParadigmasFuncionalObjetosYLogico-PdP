@@ -55,8 +55,13 @@ mapMemoriaPrograma func micro = micro {memoriaPrograma = func.memoriaPrograma $ 
 aumentarProgramCounter :: Instruccion
 aumentarProgramCounter micro = mapProgramCounter (+1) micro
 
-nop :: Instruccion
-nop = aumentarProgramCounter
+nop :: Microprocesador -> Microprocesador
+nop micro
+    | hayError micro = micro
+    | otherwise = aumentarProgramCounter micro
+
+hayError :: Microprocesador -> Bool
+hayError = (>0).length.mensajeError
 
 swap :: Instruccion
 swap = aumentarProgramCounter.invertirAcumuladores
