@@ -134,3 +134,62 @@ limpiarInstruccionesQueNoModifican micro listaInstrucciones
 
 acumuladoresYMemoriaEnCero :: Microprocesador -> Bool
 acumuladoresYMemoriaEnCero micro = (acumuladorA micro == 0) && (acumuladorB micro == 0) && (all (==0) (memoria micro))
+
+memoriaOrdenada :: Microprocesador -> Bool
+memoriaOrdenada micro = listaEstaOrdenada.memoria $ micro
+
+listaEstaOrdenada :: [Int] -> Bool
+listaEstaOrdenada [] = True
+listaEstaOrdenada [_] = True
+listaEstaOrdenada (x:y:xs) = x <= y && listaEstaOrdenada (y:xs)
+
+microDesorden :: Microprocesador
+microDesorden = UnMicroprocesador {
+    acumuladorA=0, 
+    acumuladorB=0, 
+    programCounter=0, 
+    mensajeError= "", 
+    memoriaPrograma = [], 
+    memoria = [2,5,1,0,6,9]
+}
+
+microMemoriaInf :: Microprocesador
+microMemoriaInf = UnMicroprocesador {
+    acumuladorA = 0, 
+    acumuladorB = 0, 
+    programCounter = 0, 
+    mensajeError = "", 
+    memoriaPrograma = [],
+    memoria = [0, 0..]
+} 
+
+{-
+●	¿Qué sucede al querer cargar y ejecutar el programa que suma 10 y 22 en el procesador con memoria infinita?
+
+    La suma entre 10 y 22 se ejecuta sin problemas y su resultado nos da 32 en el Acumulador A
+    Pero al mostrar el micro después de la suma, no terminará de mostrar el micro completo
+    ya que su memoria es infinita.
+
+●	¿Y si queremos saber si la memoria está ordenada (punto anterior)?
+
+    No se terminará de ejecutar la función porque estará infinitamente intentando
+    comparar si cada elemento de la lista es <= que el siguiente, como en este caso,
+    todos los valores son 0, entonces siempre estará cumpliendo el orden.
+    Pero si en algún punto la lista no estuviera ordenada, la funcion
+    frenaría y devolvería un False, sin seguir comparando los elementos siguientes.
+
+●	Relacione lo que pasa con el concepto y justifique.
+
+    Este funcionamiento especial se debe a que Haskell trabaja en un modo llamado
+    Lazy Evaluation. Lo que significa es que no se evalúa una expresion hasta
+    que se nesecite su valor. 
+    Esto hace que cuando hacemos Sumar 10 y 22, como solo debe trabajar con los acumuladores,
+    no se fija si la memoria del micro es finita o infinita, y por eso se puede ejecutar
+    normalmente la suma; el problema recién aparece al intentar mostrar al micro por consola
+    donde debe mostrar su memoria infinita, lo que nunca terminará de hacer.
+    El caso con la funcion memoriaOrdenada es que la funcion compara si se cumple el orden
+    entre los elementos de la memoria, hasta que halla 1 caso en el que no se cumpla.
+    Es por eso que si la memoria es infinita pero no está ordenada, la funcion devuelve Falso.
+    Pero en el caso de que sí esté ordenada, seguirá evaluando el orden
+    elementos a elementos infinitamente para los infinitos elementos.
+-}
