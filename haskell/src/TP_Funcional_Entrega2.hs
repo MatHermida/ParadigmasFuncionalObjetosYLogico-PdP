@@ -56,9 +56,7 @@ aumentarProgramCounter :: Instruccion
 aumentarProgramCounter micro = mapProgramCounter (+1) micro
 
 nop :: Microprocesador -> Microprocesador
-nop micro
-    | hayError micro = micro
-    | otherwise = aumentarProgramCounter micro
+nop = aumentarProgramCounter
 
 hayError :: Microprocesador -> Bool
 hayError = (>0).length.mensajeError
@@ -67,18 +65,17 @@ swap :: Instruccion
 swap = aumentarProgramCounter.invertirAcumuladores
 
 invertirAcumuladores :: Instruccion
-invertirAcumuladores micro = micro {acumuladorA = acumuladorB micro, acumuladorB = acumuladorA micro}
+invertirAcumuladores micro = mapAcumA ((const.acumuladorB) micro).mapAcumB ((const.acumuladorA) micro) $ micro
 
 add :: Instruccion
 add micro = aumentarProgramCounter . mapAcumB (const 0) . mapAcumA (+ acumuladorB micro) $ micro
 
 divide :: Instruccion
-divide micro = aumentarProgramCounter.divisionDeAcum $ micro
+divide = aumentarProgramCounter.divisionDeAcum
 
 divisionDeAcum :: Instruccion
-divisionDeAcum micro
-    | acumuladorB micro == 0 = mapMsjError (const "Error: Division by Zero") micro
-    | otherwise = mapAcumB (const 0) . mapAcumA (flip div (acumuladorB micro)) $ micro
+divisionDeAcum (UnMicroprocesador acumA 0 pC msjErr memProg mem) = mapMsjError (const "Error: Division by Zero") (UnMicroprocesador acumA 0 pC msjErr memProg mem)
+divisionDeAcum micro = mapAcumB (const 0) . mapAcumA (`div` (acumuladorB micro)) $ micro
 
 lod :: Int -> Instruccion
 lod direccion micro = aumentarProgramCounter.mapAcumA (const (memoria micro !! (direccion-1))) $ micro
