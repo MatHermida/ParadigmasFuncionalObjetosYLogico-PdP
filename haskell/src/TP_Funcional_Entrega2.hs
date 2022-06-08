@@ -110,10 +110,10 @@ ejecutarPrograma :: Instruccion
 ejecutarPrograma micro = aplicarProgramaAMicro (memoriaPrograma micro) micro 
 
 aplicarProgramaAMicro :: Programa -> Instruccion
-aplicarProgramaAMicro programa micro = foldl aplicarValorSiNoHayError micro programa
+aplicarProgramaAMicro programa micro = foldl aplicarInstruccionSiNoHayError micro programa
 
-aplicarValorSiNoHayError :: Microprocesador -> Instruccion -> Microprocesador
-aplicarValorSiNoHayError micro func 
+aplicarInstruccionSiNoHayError :: Microprocesador -> Instruccion -> Microprocesador
+aplicarInstruccionSiNoHayError micro func 
     | mensajeError micro == "" = aumentarProgramCounter.func $ micro
     | otherwise = micro
 
@@ -123,16 +123,17 @@ ifnz programa micro
     | otherwise = aplicarProgramaAMicro programa micro
 
 depurarPrograma :: Instruccion
-depurarPrograma micro = mapMemoriaPrograma (limpiarInstruccionesQueNoModifican micro) micro
+depurarPrograma micro = mapMemoriaPrograma (filter (instruccionesNecesarias micro)) $ micro
 
-limpiarInstruccionesQueNoModifican :: Microprocesador -> Programa -> Programa
-limpiarInstruccionesQueNoModifican micro programa
-    | null programa = []
-    | acumuladoresYMemoriaEnCero.(head programa) $ micro = limpiarInstruccionesQueNoModifican micro (tail programa)
-    | otherwise = [head programa] ++ limpiarInstruccionesQueNoModifican micro (tail programa)
+instruccionesNecesarias :: Microprocesador -> Instruccion -> Bool
+instruccionesNecesarias micro instruccion = not.acumuladoresYMemoriaEnCero.instruccion $ micro
 
 acumuladoresYMemoriaEnCero :: Microprocesador -> Bool
-acumuladoresYMemoriaEnCero micro = (acumuladorA micro == 0) && (acumuladorB micro == 0) && (all (==0) (memoria micro))
+acumuladoresYMemoriaEnCero micro = acumuladoresEnCero micro && (all (==0) (memoria micro))
+
+acumuladoresEnCero :: Microprocesador -> Bool
+acumuladoresEnCero (UnMicroprocesador 0 0 _ _ _ _) = True
+acumuladoresEnCero (UnMicroprocesador _ _ _ _ _ _) = False
 
 memoriaOrdenada :: Microprocesador -> Bool
 memoriaOrdenada micro = listaEstaOrdenada.memoria $ micro
@@ -140,7 +141,7 @@ memoriaOrdenada micro = listaEstaOrdenada.memoria $ micro
 listaEstaOrdenada :: [Int] -> Bool
 listaEstaOrdenada [] = True
 listaEstaOrdenada [_] = True
-listaEstaOrdenada (x:y:xs) = x <= y && listaEstaOrdenada (y:xs)
+listaEstaOrdenada (cabeza:segundoElemento:cola) = cabeza <= segundoElemento && listaEstaOrdenada (segundoElemento:cola)
 
 microDesorden :: Microprocesador
 microDesorden = UnMicroprocesador {
