@@ -56,38 +56,41 @@ aumentarProgramCounter :: Instruccion
 aumentarProgramCounter micro = mapProgramCounter (+1) micro
 
 nop :: Microprocesador -> Microprocesador
-nop = aumentarProgramCounter
+nop = id
 
 hayError :: Microprocesador -> Bool
 hayError = (>0).length.mensajeError
 
 swap :: Instruccion
-swap = aumentarProgramCounter.invertirAcumuladores
+swap = invertirAcumuladores
 
 invertirAcumuladores :: Instruccion
 invertirAcumuladores micro = mapAcumA ((const.acumuladorB) micro).mapAcumB ((const.acumuladorA) micro) $ micro
 
 add :: Instruccion
-add micro = aumentarProgramCounter . mapAcumB (const 0) . mapAcumA (+ acumuladorB micro) $ micro
+add micro = mapAcumB (const 0) . mapAcumA (+ acumuladorB micro) $ micro
 
 divide :: Instruccion
-divide = aumentarProgramCounter.divisionDeAcum
+divide = divisionDeAcum
 
 divisionDeAcum :: Instruccion
 divisionDeAcum (UnMicroprocesador acumA 0 pC msjErr memProg mem) = mapMsjError (const "Error: Division by Zero") (UnMicroprocesador acumA 0 pC msjErr memProg mem)
 divisionDeAcum micro = mapAcumB (const 0) . mapAcumA (`div` (acumuladorB micro)) $ micro
 
 lod :: Int -> Instruccion
-lod direccion micro = aumentarProgramCounter.mapAcumA (const (memoria micro !! (direccion-1))) $ micro
+lod direccion micro = mapAcumA ((const.valorDeMemEnDir direccion) micro ) $ micro
+
+valorDeMemEnDir :: Int -> Microprocesador -> Int
+valorDeMemEnDir direccion micro = (memoria micro !! (direccion-1))
 
 str :: Int -> Int -> Instruccion
-str direccion valor = aumentarProgramCounter.mapMemoria (transformarValorDePosicionDeLista direccion valor)
+str direccion valor = mapMemoria (transformarValorDePosicionDeLista direccion valor)
 
 transformarValorDePosicionDeLista :: Int -> Int -> [Int] -> [Int]
 transformarValorDePosicionDeLista posicion valor lista = (take (posicion-1) lista) ++ [valor] ++ (drop posicion lista)
 
 lodv :: Int -> Instruccion
-lodv valor = aumentarProgramCounter.mapAcumA (const valor)
+lodv valor = mapAcumA (const valor)
 
 
 avanza3Posiciones :: Instruccion
@@ -101,33 +104,32 @@ divide2Por0 = divide.(lod 1).swap.(lod 2).(str 2 0).(str 1 2)
 
 
 cargarPrograma :: Programa -> Instruccion
-cargarPrograma listaInstrucciones = mapMemoriaPrograma (const listaInstrucciones)
+cargarPrograma programa = mapMemoriaPrograma (const programa)
 
 ejecutarPrograma :: Instruccion
-ejecutarPrograma micro = aplicarListaDeInstruccionesAMicro (memoriaPrograma micro) micro 
+ejecutarPrograma micro = aplicarProgramaAMicro (memoriaPrograma micro) micro 
 
-aplicarListaDeInstruccionesAMicro :: Programa -> Instruccion
-aplicarListaDeInstruccionesAMicro listaInstrucciones micro = foldr aplicarValorSiNoHayError micro (reverse listaInstrucciones)
---aplicarListaDeInstruccionesAMicro listaInstrucciones micro = foldl (flip ($)) micro listaInstrucciones
+aplicarProgramaAMicro :: Programa -> Instruccion
+aplicarProgramaAMicro programa micro = foldl aplicarValorSiNoHayError micro programa
 
-aplicarValorSiNoHayError :: Instruccion -> Instruccion
-aplicarValorSiNoHayError func micro 
-    | mensajeError micro == "" = func $ micro
+aplicarValorSiNoHayError :: Microprocesador -> Instruccion -> Microprocesador
+aplicarValorSiNoHayError micro func 
+    | mensajeError micro == "" = aumentarProgramCounter.func $ micro
     | otherwise = micro
 
 ifnz :: Programa -> Instruccion
-ifnz listaInstrucciones micro 
+ifnz programa micro 
     | acumuladorA micro == 0 = micro
-    | otherwise = aplicarListaDeInstruccionesAMicro listaInstrucciones micro
+    | otherwise = aplicarProgramaAMicro programa micro
 
 depurarPrograma :: Instruccion
 depurarPrograma micro = mapMemoriaPrograma (limpiarInstruccionesQueNoModifican micro) micro
 
 limpiarInstruccionesQueNoModifican :: Microprocesador -> Programa -> Programa
-limpiarInstruccionesQueNoModifican micro listaInstrucciones
-    | null listaInstrucciones = []
-    | acumuladoresYMemoriaEnCero.(head listaInstrucciones) $ micro = limpiarInstruccionesQueNoModifican micro (tail listaInstrucciones)
-    | otherwise = [head listaInstrucciones] ++ limpiarInstruccionesQueNoModifican micro (tail listaInstrucciones)
+limpiarInstruccionesQueNoModifican micro programa
+    | null programa = []
+    | acumuladoresYMemoriaEnCero.(head programa) $ micro = limpiarInstruccionesQueNoModifican micro (tail programa)
+    | otherwise = [head programa] ++ limpiarInstruccionesQueNoModifican micro (tail programa)
 
 acumuladoresYMemoriaEnCero :: Microprocesador -> Bool
 acumuladoresYMemoriaEnCero micro = (acumuladorA micro == 0) && (acumuladorB micro == 0) && (all (==0) (memoria micro))
