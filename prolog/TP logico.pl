@@ -11,8 +11,6 @@ persona(sebastienFaure).
 
 trabajo(bakunin,        aviacionMilitar).
 trabajo(ravachol,       inteligenciaMilitar).
-trabajo(rosaDubovsky,   recolectorDeBasura).
-trabajo(rosaDubovsky,   asesinaASueldo).
 trabajo(emmaGoldman,    profesoraDeJudo).
 trabajo(emmaGoldman,    cineasta). 
 trabajo(judithButler,   profesoraDeJudo).
@@ -134,11 +132,12 @@ esDisidente(Persona) :-
     esCercanoAUnCriminal(Persona).
 
 tieneHabilidadTerrorista(Persona) :-
-    esHabilidosoEn(Persona, armarBombas).
-tieneHabilidadTerrorista(Persona) :-
-    esHabilidosoEn(Persona, tiroAlBlanco).
-tieneHabilidadTerrorista(Persona) :-
-    esHabilidosoEn(Persona, mirarPeppaPig).
+    esHabilidosoEn(Persona, Habilidad),
+    esHabilidadTerrorista(Habilidad).
+
+esHabilidadTerrorista(armarBombas).
+esHabilidadTerrorista(tiroAlBlanco).
+esHabilidadTerrorista(mirarPeppaPig).
 
 gustosSospechosos(Persona) :-
     persona(Persona),
@@ -174,17 +173,28 @@ superficieDeAmbientePorTipo(bunker(Perimetro, SuperficieInterna), Superficie) :-
     Superficie is SuperficieInterna + Perimetro.
 
 %--------------- 7 ---------------
-batallonDeRebeldes(Batallon) :-
-    not(unaPersonaEsta2Veces(Batallon)),
-    forall(member(Persona, Batallon), esCercanoAUnCriminal(Persona)),
-    sumanMasDe3Habilidades(Batallon).
+batallonDeRebeldes(Batallon):-
+    findall(Rebelde, esCercanoAUnCriminal(Rebelde), Rebeldes),
+    list_to_set(Rebeldes, RebeldesSinRepetidos),
+    batallon(RebeldesSinRepetidos, Batallon),
+    sumanMasDe3HabilidadesEntreTodos(Batallon).
 
-sumanMasDe3Habilidades(Batallon) :-
+batallon([], []).
+batallon([Rebelde|Rebeldes], [Rebelde|RestoDelBatallon]):-
+    batallon(Rebeldes, RestoDelBatallon).
+batallon([_|Rebeldes], RestoDelBatallon):-
+    batallon(Rebeldes, RestoDelBatallon).
+
+sumanMasDe3HabilidadesEntreTodos(Batallon) :-
     findall(Hab, (member(Persona, Batallon), esHabilidosoEn(Persona, Hab)), Habilidades),
     length(Habilidades, CantHab),
     CantHab > 3.
 
-unaPersonaEsta2Veces(Batallon):-
-    nth1(UnIndice, Batallon, Persona),
-    nth1(OtroIndice, Batallon, Persona),
-    UnIndice \= OtroIndice.
+/*
+Los conceptos que resuelven este ejercicio son:
+ - findall para poder generar todos los Rebeldes que pueden formar parte de un batallon
+ - list_to_set para poder eliminar a los Rebeldes repetidos de la lista de Rebeldes
+ - mecanismo de backtracking de Prolog permite encontrar todas las soluciones posibles
+ - El concepto de Explosión Combinatoria para poder generar todas las combinaciones posibles de Rebeldes 
+    que juntos forman un batallon
+*/
