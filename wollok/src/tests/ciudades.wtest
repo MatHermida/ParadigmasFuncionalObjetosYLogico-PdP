@@ -1,0 +1,59 @@
+import centrales.*
+import ciudades.*
+
+describe "Test de Sprignfield" {
+	
+	method initialize(){
+		burns.varillasUranio(10)
+		exBosque.capacidad(20)
+		springfield.centrales(#{burns, exBosque, elSuspiro})
+	}
+	
+	test "burns con 10 varillas produce 1 Mkwh en springfield"{
+		self.initialize()
+		assert.equals(1, springfield.produccionEnergDeCentral(burns))
+	}
+	
+	test "exBosque con una capacidad de 20 toneladas produce 18.5 Mkwh en springfield."{
+		self.initialize()
+		assert.equals(18.5, springfield.produccionEnergDeCentral(exBosque))
+	}
+	
+	test "elSuspiro produce 2 Mkwh en springfield."{
+		self.initialize()
+		assert.equals(2, springfield.produccionEnergDeCentral(elSuspiro))
+	}
+	
+	test "Teniendo las centrales burns, exBosque y elSuspiro, las centrales contaminantes de sprinfield es una colección que adentro tiene sólo a exBosque."{
+		self.initialize()
+		assert.equals(#{exBosque}, springfield.centralesContaminantes())
+	}
+	
+	test "Teniendo las centrales burns, exBosque y elSuspiro, springfield cubrió su necesidad energética si ésta era de 20 Mkwh."{
+		self.initialize()
+		springfield.necesidadEnergetica(20)
+		assert.that(springfield.cubrioNecesidadEnergetica())
+	}
+	
+	test "Teniendo las centrales burns, exBosque y elSuspiro, springfield está al horno si posee una necesidad energética de 30 Mkwh."{
+		self.initialize()
+		springfield.necesidadEnergetica(30)
+		assert.that(springfield.estaAlHorno())
+	}
+}
+
+describe "Test de region"{
+	
+	method initialize(){
+		burns.varillasUranio(10)
+		exBosque.capacidad(20)
+		springfield.centrales(#{burns, exBosque, elSuspiro})
+		region.agregarCiudad(springfield)
+		region.agregarCiudad(albuquerque)
+	}
+	
+	test "Teniendo las centrales anteriores de springfield, las centrales más productoras de la región donde ésta se encuentra es una colección con exBosque de springfield y la central hidroeléctrica de albuquerque." {
+		self.initialize()
+		assert.equals(#{exBosque, centralHidroelectrica}, region.centralesMasProductoras())
+	}
+}
