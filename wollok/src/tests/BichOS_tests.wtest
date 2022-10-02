@@ -259,7 +259,7 @@ describe "Tests de Cansancio" {
 		assert.equals(20, hormiga.cantidadDeAlimento())
 	}
 
-	/** 21 **/
+	/** 21  **/
 	test "hormiga exaltada, despues de recorrer mas de 5mts, recolecta cantidad normal de alimento" {
 		assert.equals("normal", hormiga.estadoDeEnergia())
 		hormiga.descansar()
