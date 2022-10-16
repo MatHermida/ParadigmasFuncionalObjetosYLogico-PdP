@@ -1,13 +1,14 @@
 import hormiguero.*
 import hormigas.*
 import alimento.*
+import estados_De_Energia.*
 
 /** Hormigas **/
 describe "Tests de hormigas" {
 
-	const hormigaSinNada = new Hormiga(cantidadDeAlimento = 0)
-	const hormigaLiviana = new Hormiga(cantidadDeAlimento = 5)
-	const hormigaAlLimite = new Hormiga(cantidadDeAlimento = 9)
+	const hormigaSinNada = new HormigaObrera(cantidadDeAlimento = 0)
+	const hormigaLiviana = new HormigaObrera(cantidadDeAlimento = 5)
+	const hormigaAlLimite = new HormigaObrera(cantidadDeAlimento = 9)
 
 	/** 1 **/
 	test "hormigaSinNada, que lleva 0 de alimento, dice que lleva 0" {
@@ -40,7 +41,7 @@ describe "Tests de hormigas" {
 /** Recorridos **/
 describe "Test de Recorridos" {
 
-	const hormiga = new Hormiga()
+	const hormiga = new HormigaObrera()
 
 	method hacerQueHormigaVayaAVariosPuntos() {
 		hormiga.desplazarseA([ 1, 0 ])
@@ -97,9 +98,9 @@ describe "Test de Hormigueros" {
 	const hormiguero = new Hormiguero() 
 	
 	method aniadir3HormigasAlHormiguero() {
-		hormiguero.aniadirHormigas(new Hormiga(cantidadDeAlimento = 0))
-		hormiguero.aniadirHormigas(new Hormiga(cantidadDeAlimento = 5))
-		hormiguero.aniadirHormigas(new Hormiga(cantidadDeAlimento = 9))
+		hormiguero.aniadirHormigas(new HormigaObrera(cantidadDeAlimento = 0))
+		hormiguero.aniadirHormigas(new HormigaObrera(cantidadDeAlimento = 5))
+		hormiguero.aniadirHormigas(new HormigaObrera(cantidadDeAlimento = 9))
 	}
 	
 	method hacerQueHormigasRecorran5mts() {
@@ -157,8 +158,8 @@ describe "Test de Hormigueros" {
 /** Extracción de Alimentos **/
 describe "Test de extraccion de Alimentos" {
 
-	const hormigaSinNada = new Hormiga(cantidadDeAlimento = 0)
-	const hormigaLiviana = new Hormiga(cantidadDeAlimento = 5)
+	const hormigaSinNada = new HormigaObrera(cantidadDeAlimento = 0)
+	const hormigaLiviana = new HormigaObrera(cantidadDeAlimento = 5)
 	const manzana = new Alimento(peso = 20, posicion = [ 4, 4 ])
 	const pera = new Alimento(peso = 15, posicion = [ 2, 2 ])
 	const durazno = new Alimento(peso = 7, posicion = [ -2, -2 ])
@@ -214,7 +215,7 @@ describe "Test de extraccion de Alimentos" {
 /** Cansancio **/
 describe "Tests de Cansancio" {
 
-	const hormiga = new Hormiga()
+	const hormiga = new HormigaObrera()
 
 	test "hormiga recorre más de 10mts, entonces se cansa" {
 		hormiga.desplazarseA([ 11, 0 ])
@@ -251,21 +252,21 @@ describe "Tests de Cansancio" {
 
 	/** 20 **/
 	test "hormiga normal que descansa, recolecta el doble de alimento" {
-		assert.equals("normal", hormiga.estadoDeEnergia())
+		assert.equals(normal, hormiga.estadoDeEnergia())
 		hormiga.descansar()
-		assert.equals("exaltada", hormiga.estadoDeEnergia())
+		assert.equals(exaltada, hormiga.estadoDeEnergia())
 		hormiga.obtenerAlimentoDe(new Alimento(peso = 25, posicion = [ 1, 0 ]))
 		assert.equals([ 1, 0 ], hormiga.ubicacionActual())
 		assert.equals(20, hormiga.cantidadDeAlimento())
 	}
 
-	/** 21  **/
+	/** 21 **/
 	test "hormiga exaltada, despues de recorrer mas de 5mts, recolecta cantidad normal de alimento" {
-		assert.equals("normal", hormiga.estadoDeEnergia())
+		assert.equals(normal, hormiga.estadoDeEnergia())
 		hormiga.descansar()
-		assert.equals("exaltada", hormiga.estadoDeEnergia())
+		assert.equals(exaltada, hormiga.estadoDeEnergia())
 		hormiga.desplazarseA([ 6, 0 ])
-		assert.equals("normal", hormiga.estadoDeEnergia())
+		assert.equals(normal, hormiga.estadoDeEnergia())
 		hormiga.obtenerAlimentoDe(new Alimento(peso = 25, posicion = [ 5, 0 ]))
 		assert.equals([ 5, 0 ], hormiga.ubicacionActual())
 		assert.equals(10, hormiga.cantidadDeAlimento())

@@ -1,0 +1,12 @@
+import hormiguero.*
+import hormigas.*
+import alimento.*
+
+describe "Tests de hormigas" {
+
+	test "testX" {
+
+		assert.that(true)
+
+	}
+}
