@@ -7,7 +7,280 @@ import estados_De_Energia.*
 describe "Tests de hormigas" {
 
 	const hormigaSinNada = new HormigaObrera(cantidadDeAlimento = 0)
+	const hormigaLiviana = new HormigaObrera(cantidadDeAlimento = 5)import hormiguero.*
+import hormigas.*
+import alimento.*
+import estados_De_Energia.*
+
+/** Hormigas **/
+describe "Tests de hormigas" {
+
+	const hormigaSinNada = new HormigaObrera(cantidadDeAlimento = 0)
 	const hormigaLiviana = new HormigaObrera(cantidadDeAlimento = 5)
+	const hormigaAlLimite = new HormigaObrera(cantidadDeAlimento = 9)
+
+	/** 1 **/
+	test "hormigaSinNada, que lleva 0 de alimento, dice que lleva 0" {
+		assert.equals(0, hormigaSinNada.cantidadDeAlimento())
+	}
+
+	test "hormigaLiviana, que lleva 5 de alimento, dice que lleva 5" {
+		assert.equals(5, hormigaLiviana.cantidadDeAlimento())
+	}
+
+	test "hormigaAlLimite, que lleva 9 de alimento, dice que lleva 9" {
+		assert.equals(9, hormigaAlLimite.cantidadDeAlimento())
+	}
+
+	/** 2 **/
+	test "hormigaSinNada, que lleva 0 de alimento, no está al Limite" {
+		assert.that(not hormigaSinNada.estaAlLimite())
+	}
+
+	test "hormigaLiviana, que lleva 5 de alimento, no está al Limite" {
+		assert.that(not hormigaLiviana.estaAlLimite())
+	}
+
+	test "hormigaAlLimite, que lleva 9 de alimento, sí está al Limite" {
+		assert.that(hormigaAlLimite.estaAlLimite())
+	}
+
+}
+
+/** Recorridos **/
+describe "Test de Recorridos" {
+
+	const hormiga = new HormigaObrera()
+
+	method hacerQueHormigaVayaAVariosPuntos() {
+		hormiga.desplazarseA([ 1, 0 ])
+		hormiga.desplazarseA([ 1, 1 ])
+		hormiga.desplazarseA([ 0, 0 ])
+	}
+
+	test "hormiga empieza ubicada en el [0,0]" {
+		assert.equals([ 0, 0 ], hormiga.ubicacionActual())
+	}
+
+	/** 3 **/
+	test "hormiga que hacerQueHormigaVayaAVariosPuntos, pasa por [0,0], [1,0], [1,1] y [0,0]" {
+		self.hacerQueHormigaVayaAVariosPuntos()
+		assert.equals([ [0,0], [1,0], [1,1], [0,0] ], hormiga.puntosRecorridos())
+	}
+
+	/** 4 **/
+	test "hormiga empieza con distancia 0" {
+		assert.equals(0, hormiga.distanciaRecorridaTotal())
+	}
+
+	test "hormiga que hacerQueHormigaVayaAVariosPuntos, tiene distancia 3.41421" {
+		self.hacerQueHormigaVayaAVariosPuntos()
+		assert.equals(3.41421, hormiga.distanciaRecorridaTotal())
+	}
+
+	/** 5 **/
+	test "hormiga que hacerQueHormigaVayaAVariosPuntos, tiene distancia 2.41421 en sus ultimos 2 viajes" {
+		self.hacerQueHormigaVayaAVariosPuntos()
+		assert.equals(2.41421, hormiga.distanciaRecorridaTotalEnNViajes(2))
+	}
+
+	/** 6 **/
+	test "hormiga que hacerQueHormigaVayaAVariosPuntos, tiene distancia promedio 1.13807" {
+		self.hacerQueHormigaVayaAVariosPuntos()
+		assert.equals(1.13807, hormiga.distanciaRecorridaPromedio())
+	}
+
+	/** 7 **/
+	test "hormiga que hacerQueHormigaVayaAVariosPuntos, tiene distancia promedio 1.207105 en sus ultimos 2 viajes" {
+		self.hacerQueHormigaVayaAVariosPuntos()
+		assert.equals(1.207105, hormiga.distanciaRecorridaPromedioEnNViajes(2))
+	}
+
+}
+
+/** Hormigueros **/
+describe "Test de Hormigueros" {
+	
+	const hormiguero = new Hormiguero() 
+	
+	method aniadir3HormigasAlHormiguero() {
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 0))
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 5))
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 9))
+	}
+	
+	method hacerQueHormigasRecorran5mts() {
+		hormiguero.hormigas().forEach({ hormiga => hormiga.desplazarseA([2,0]) })
+		hormiguero.hormigas().forEach({ hormiga => hormiga.desplazarseA([2,3]) })
+	}
+	
+	/** 8.a **/
+	test "hormiguero empieza vacio con 0 hormigas" {
+		assert.equals(0, hormiguero.poblacionTotal())
+	}
+	/** 8.b **/
+	test "hormiguero, que tiene 3 hormigas, dice que tiene 3" {
+		self.aniadir3HormigasAlHormiguero()
+		assert.equals(3, hormiguero.poblacionTotal())
+	}
+	
+	/** 9 **/
+	test "hormiguero reclama el alimento de sus hormigas" {
+		self.aniadir3HormigasAlHormiguero()
+		const alimentoARecibir = hormiguero.cantidadDeAlimentoDeLasHormigas()
+		hormiguero.reclamarAlimento()
+		assert.equals(alimentoARecibir, hormiguero.depositoAlimento())
+	}
+	
+	/** 10 **/
+	test "hormiguero, con 5 alimento en deposito y 14 alimento que llevan las hormigas, dice que tiene 19 alimento en total" {
+		self.aniadir3HormigasAlHormiguero()
+		hormiguero.depositoAlimento(5)
+		assert.equals(19, hormiguero.cantidadDeAlimentoTotal())
+	}
+	
+	/** 11 **/
+	test "hormiguero, con 5 alimento en deposito y 14 alimento que llevan las hormigas, dice que tiene 14 alimento en transito" {
+		self.aniadir3HormigasAlHormiguero()
+		hormiguero.depositoAlimento(5)
+		assert.equals(14, hormiguero.cantidadDeAlimentoDeLasHormigas())
+	}
+	
+	/** 12 **/
+	test "hormiguero, con 5 alimento en deposito y 14 alimento que llevan las hormigas, dice que tiene 5 alimento en depositos" {
+		self.aniadir3HormigasAlHormiguero()
+		hormiguero.depositoAlimento(5)
+		assert.equals(5, hormiguero.depositoAlimento())
+	}
+	
+	/** 13 **/
+	test "hormiguero, con 3 hormigas que recorrieron 5mts cada una, dice que sus hormigas recorrieron 15mts en total" {
+		self.aniadir3HormigasAlHormiguero()
+		self.hacerQueHormigasRecorran5mts()
+		assert.equals(15, hormiguero.distanciaRecorridaTotalPorHormigas())
+	}
+}
+
+/** Extracción de Alimentos **/
+describe "Test de extraccion de Alimentos" {
+
+	const hormigaSinNada = new HormigaObrera(cantidadDeAlimento = 0)
+	const hormigaLiviana = new HormigaObrera(cantidadDeAlimento = 5)
+	const manzana = new Alimento(peso = 20, posicion = [ 4, 4 ])
+	const pera = new Alimento(peso = 15, posicion = [ 2, 2 ])
+	const durazno = new Alimento(peso = 7, posicion = [ -2, -2 ])
+	const alimentoVacio = new Alimento(peso = 0, posicion = [ -4, -4 ])
+
+	/** 14 **/
+	test "hormigaSinNada extrae de manzana, hormiga queda con 10 alimento y manzana queda con peso 9" {
+		hormigaSinNada.obtenerAlimentoDe(manzana)
+		assert.equals(manzana.posicion(), hormigaSinNada.ubicacionActual())
+		assert.equals(10, hormigaSinNada.cantidadDeAlimento())
+		assert.equals(9, manzana.peso())
+	}
+
+	test "hormigaSinNada extrae de pera, hormiga queda con 10 alimento y pera queda con peso 4" {
+		hormigaSinNada.obtenerAlimentoDe(pera)
+		assert.equals(pera.posicion(), hormigaSinNada.ubicacionActual())
+		assert.equals(10, hormigaSinNada.cantidadDeAlimento())
+		assert.equals(4, pera.peso())
+	}
+
+	/** 15 **/
+	test "hormigaSinNada extrae de durazno, hormiga queda con 6 alimento y durazno queda con peso 0" {
+		hormigaSinNada.obtenerAlimentoDe(durazno)
+		assert.equals(durazno.posicion(), hormigaSinNada.ubicacionActual())
+		assert.equals(6, hormigaSinNada.cantidadDeAlimento())
+		assert.equals(0, durazno.peso())
+	}
+
+	test "hormigaSinNada extrae de alimentoVacio, hormiga queda con 0 alimento y alimentoVacio queda con peso 0" {
+		hormigaSinNada.obtenerAlimentoDe(alimentoVacio)
+		assert.equals(alimentoVacio.posicion(), hormigaSinNada.ubicacionActual())
+		assert.equals(0, hormigaSinNada.cantidadDeAlimento())
+		assert.equals(0, alimentoVacio.peso())
+	}
+
+	/** 16 **/
+	test "hormigaLiviana extrae de durazno, hormiga queda con 10 alimento y durazno queda con peso 1" {
+		hormigaLiviana.obtenerAlimentoDe(durazno)
+		assert.equals(durazno.posicion(), hormigaLiviana.ubicacionActual())
+		assert.equals(10, hormigaLiviana.cantidadDeAlimento())
+		assert.equals(1, durazno.peso())
+	}
+
+	test "hormigaLiviana extrae de alimentoVacio, hormiga queda con 5 alimento y alimentoVacio queda con peso 0" {
+		hormigaLiviana.obtenerAlimentoDe(alimentoVacio)
+		assert.equals(alimentoVacio.posicion(), hormigaLiviana.ubicacionActual())
+		assert.equals(5, hormigaLiviana.cantidadDeAlimento())
+		assert.equals(0, alimentoVacio.peso())
+	}
+
+}
+
+/** Cansancio **/
+describe "Tests de Cansancio" {
+
+	const hormiga = new HormigaObrera()
+
+	test "hormiga recorre más de 10mts, entonces se cansa" {
+		hormiga.desplazarseA([ 11, 0 ])
+		assert.that(hormiga.estaCansada())
+	}
+
+	/** 17 **/
+	test "hormiga cansada no se mueve" {
+		hormiga.desplazarseA([ 11, 0 ])
+		assert.that(hormiga.estaCansada())
+		hormiga.desplazarseA([ 12, 0 ])
+		assert.equals([ 11, 0 ], hormiga.ubicacionActual())
+	}
+
+	/** 18 **/
+	test "hormiga cansada no recolecta alimento y tampoco va hacia este" {
+		hormiga.desplazarseA([ 11, 0 ])
+		assert.that(hormiga.estaCansada())
+		hormiga.obtenerAlimentoDe(new Alimento(peso = 25, posicion = [ 12, 0 ]))
+		assert.equals([ 11, 0 ], hormiga.ubicacionActual())
+		assert.equals(0, hormiga.cantidadDeAlimento())
+	}
+
+	/** 19 **/
+	test "hormiga cansada que descansa, recolecta alimento y va hacia este" {
+		hormiga.desplazarseA([ 11, 0 ])
+		assert.that(hormiga.estaCansada())
+		hormiga.descansar()
+		assert.that(not hormiga.estaCansada())
+		hormiga.obtenerAlimentoDe(new Alimento(peso = 25, posicion = [ 12, 0 ]))
+		assert.equals([ 12, 0 ], hormiga.ubicacionActual())
+		assert.equals(10, hormiga.cantidadDeAlimento())
+	}
+
+	/** 20 **/
+	test "hormiga normal que descansa, recolecta el doble de alimento" {
+		assert.equals(normal, hormiga.estadoDeEnergia())
+		hormiga.descansar()
+		assert.equals(exaltada, hormiga.estadoDeEnergia())
+		hormiga.obtenerAlimentoDe(new Alimento(peso = 25, posicion = [ 1, 0 ]))
+		assert.equals([ 1, 0 ], hormiga.ubicacionActual())
+		assert.equals(20, hormiga.cantidadDeAlimento())
+	}
+
+	/** 21 **/
+	test "hormiga exaltada, despues de recorrer mas de 5mts, recolecta cantidad normal de alimento" {
+		assert.equals(normal, hormiga.estadoDeEnergia())
+		hormiga.descansar()
+		assert.equals(exaltada, hormiga.estadoDeEnergia())
+		hormiga.desplazarseA([ 6, 0 ])
+		assert.equals(normal, hormiga.estadoDeEnergia())
+		hormiga.obtenerAlimentoDe(new Alimento(peso = 25, posicion = [ 5, 0 ]))
+		assert.equals([ 5, 0 ], hormiga.ubicacionActual())
+		assert.equals(10, hormiga.cantidadDeAlimento())
+	}
+
+}
+
+
 	const hormigaAlLimite = new HormigaObrera(cantidadDeAlimento = 9)
 
 	/** 1 **/
