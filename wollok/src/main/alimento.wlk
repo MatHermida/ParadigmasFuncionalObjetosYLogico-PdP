@@ -9,7 +9,7 @@ class Alimento {
 		return (peso - 1).max(0)
 	}
 	method extraerAlimento(cantAExtraer) {
-		peso -= (cantAExtraer + 1)	
+		peso = 0.max(peso - cantAExtraer - 1)	
 	}
 	
 }
