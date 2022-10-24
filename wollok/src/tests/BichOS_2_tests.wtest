@@ -9,4 +9,398 @@ describe "Tests de hormigas" {
 		assert.that(true)
 
 	}
+}import hormigas.*
+import hormiguero.*
+import alimento.*
+import langosta.*
+import colonias.*
+
+/** ********** Diversificación ********** **/
+describe "Tests de distintos tipos de hormigas" {
+
+	const obrera = new HormigaObrera()
+	const soldado = new HormigaSoldado()
+	const zangano = new HormigaZangano()
+	const reina = new HormigaReina()
+	const pera = new Alimento(peso = 15, posicion = [ 1, 0 ])
+	const hormiguero = new Hormiguero()
+
+	/** ********** 1a ********** **/
+	test "obrera recolectar alimento de un Alimento, recolecta bien" {
+		obrera.obtenerAlimentoDe(pera)
+		assert.equals(10, obrera.cantidadDeAlimento())
+	}
+
+	test "soldado recolectar alimento de un Alimento, tira exception" {
+		assert.throwsExceptionWithMessage("hormiga soldado no puede recolectar alimento", { soldado.obtenerAlimentoDe(pera)})
+	}
+
+	test "zangano recolectar alimento de un Alimento, tira exception" {
+		assert.throwsExceptionWithMessage("hormiga zangano no puede recolectar alimento", { zangano.obtenerAlimentoDe(pera)})
+	}
+
+	test "reina recolectar alimento de un Alimento, tira exception" {
+		assert.throwsExceptionWithMessage("hormiga reina no puede recolectar alimento", { reina.obtenerAlimentoDe(pera)})
+	}
+
+	/** ********** 1b ********** **/
+	test "obrera entrega lo que tiene de alimento bien" {
+		hormiguero.aniadirHormiga(obrera)
+		obrera.obtenerAlimentoDe(pera)
+		obrera.entregarAlimentoAlHormiguero()
+		assert.equals(0, obrera.cantidadDeAlimento())
+		assert.equals(hormiguero.posicion(), obrera.ubicacionActual())
+		assert.equals(10, hormiguero.depositoAlimento())
+	}
+
+	test "soldado al entregar alimento, solo va a hormiguero bien" {
+		hormiguero.aniadirHormiga(soldado)
+		soldado.entregarAlimentoAlHormiguero()
+		assert.equals(0, soldado.cantidadDeAlimento())
+		assert.equals(hormiguero.posicion(), soldado.ubicacionActual())
+		assert.equals(0, hormiguero.depositoAlimento())
+	}
+
+	test "zangano entrega 1 alimento bien" {
+		hormiguero.aniadirHormiga(zangano)
+		zangano.entregarAlimentoAlHormiguero()
+		assert.equals(hormiguero.posicion(), zangano.ubicacionActual())
+		assert.equals(1, hormiguero.depositoAlimento())
+	}
+
+	test "reina entrega 0 alimento bien" {
+		hormiguero.aniadirHormiga(reina)
+		reina.entregarAlimentoAlHormiguero()
+		assert.equals(hormiguero.posicion(), reina.ubicacionActual())
+		assert.equals(0, hormiguero.depositoAlimento())
+	}
+
+	/** ********** 1c ********** **/
+	test "obrera no estaAlLimite cuando lleva 0 alimento" {
+		assert.notThat(obrera.estaAlLimite())
+	}
+
+	test "soldado nunca estaAlLimite" {
+		assert.notThat(soldado.estaAlLimite())
+	}
+
+	test "zangano siempre estaAlLimite" {
+		assert.that(zangano.estaAlLimite())
+	}
+
+	test "reina nunca estaAlLimite" {
+		assert.notThat(reina.estaAlLimite())
+	}
+
+	/** ********** 1d ********** **/
+	test "obrera responde ubicacionActual" {
+		assert.equals([ 0, 0 ], obrera.ubicacionActual())
+	}
+
+	test "soldado responde ubicacionActual" {
+		assert.equals([ 0, 0 ], soldado.ubicacionActual())
+	}
+
+	test "zangano responde ubicacionActual con posicion del hormiguero, tira exception" {
+		hormiguero.aniadirHormiga(zangano)
+		assert.equals(hormiguero.posicion(), zangano.ubicacionActual())
+	}
+
+	test "reina responde ubicacionActual con posicion del hormiguero, tira exception" {
+		hormiguero.aniadirHormiga(reina)
+		assert.equals(hormiguero.posicion(), reina.ubicacionActual())
+	}
+
 }
+
+describe "Tests de hormigueros con distintos tipos de hormigas" {
+
+	const obrera = new HormigaObrera()
+	const soldado = new HormigaSoldado()
+	const zangano = new HormigaZangano()
+	const reina = new HormigaReina()
+	const hormiguero = new Hormiguero()
+	const hormigueroCercano = new HormigueroCercano()
+	const hormigueroCualesquiera = new HormigueroCualesquiera()
+	const hormigueroViolento = new HormigueroViolento()
+
+	method initialize() {
+		hormiguero.aniadirHormiga(obrera)
+		hormiguero.aniadirHormiga(soldado)
+		hormiguero.aniadirHormiga(zangano)
+		hormiguero.aniadirHormiga(reina)
+	}
+
+	method agregar1HormigaDeCadaTipoA(unHormiguero) {
+		unHormiguero.aniadirHormiga(obrera)
+		unHormiguero.aniadirHormiga(soldado)
+		unHormiguero.aniadirHormiga(zangano)
+		unHormiguero.aniadirHormiga(reina)
+	}
+
+	method agregar10ObrerasY10Soldados(unHormiguero) {
+		10.times({ i => unHormiguero.aniadirHormiga(new HormigaObrera())})
+		10.times({ i => unHormiguero.aniadirHormiga(new HormigaSoldado())})
+	}
+
+	/** ********** 2a ********** **/
+	test "hormiguero con 1 hormiga de cada tipo responde 4 cantidad de hormigas" {
+		assert.equals(4, hormiguero.poblacionTotal())
+	}
+
+	/** ********** 2b ********** **/
+	test "hormiguero con obrera y soldado responde distancia recorrida de hormigas" {
+		const hormiguero2 = new Hormiguero()
+		hormiguero2.aniadirHormiga(obrera)
+		hormiguero2.aniadirHormiga(soldado)
+		assert.equals(0, hormiguero2.distanciaRecorridaTotalPorHormigas())
+	}
+
+	test "hormiguero con 1 hormiga de cada tipo responde distancia recorrida de hormigas" {
+		assert.equals(0, hormiguero.distanciaRecorridaTotalPorHormigas())
+	}
+
+	/** ********** 2c ********** **/
+	test "hormiguero responde cantidad de alimento en transito de hormigas" {
+		obrera.obtenerAlimentoDe(new Alimento(peso = 15, posicion = [ 1, 0 ]))
+		assert.equals(10, hormiguero.cantidadDeAlimentoDeLasHormigas())
+	}
+
+	/** ********** 3 ********** **/
+	test "Matar a una hormiga. Debe ser removida en ese momento del hormiguero." {
+		reina.recibirAtaqueDe(langosta)
+		assert.notThat(hormiguero.hormigas().contains(reina))
+	}
+
+	/** ********** 4 ********** **/
+	test "obrera atacar a soldado, soldado pierde 2 de vida" {
+		obrera.atacar(soldado)
+		assert.equals(18, soldado.vida())
+	}
+
+	test "soldado atacar a obrera, obrera muere" {
+		soldado.atacar(obrera)
+		assert.notThat(obrera.estaViva())
+	}
+
+	test "zangano atacar a reina, obrera muere" {
+		zangano.atacar(reina)
+		assert.notThat(reina.estaViva())
+	}
+
+	test "soldado atacar a langosta, langosta le responde atacandolo, soldado pierde 10 de vida" {
+		soldado.atacar(langosta)
+		assert.equals(10, soldado.vida())
+	}
+
+	test "obrera atacar a langosta, langosta le responde atacandolo, obrera muere" {
+		obrera.atacar(langosta)
+		assert.notThat(obrera.estaViva())
+		assert.equals(48, langosta.vida())
+	}
+
+	/** ********** 5 ********** **/
+	// Para el requerimiento: Detectar a todos los intrusos que se encuentren cerca del hormiguero. Sugerencia: acá puede ser útil introducir un objeto que represente al mundo o terreno, y que sepa decirnos cuales son los seres que están cerca.
+	//Realizamos una lógica y métodos que nos parecieron que estaban bien (detectarIntruso(unBicho) y consideraIntruso(unBicho) y defenderseDe(unBicho)), pero no supimos como hacer un test que Detecte a Todos los Intrusos
+	
+	/** ********** 6 ********** **/
+	test "hormiguero no ataca a hormiga de ese hormiguero" {
+		hormiguero.detectarIntruso(soldado)
+		assert.equals(20, soldado.vida())
+	}
+
+	test "hormiguero no ataca a hormiga que este lejos y no sea instruso" {
+		const soldadoIntruso = new HormigaSoldado(puntosRecorridos = [ [15,0] ])
+		hormiguero.detectarIntruso(soldadoIntruso)
+		assert.equals(20, soldadoIntruso.vida())
+	}
+
+	test "hormigueroCercano con 1 hormiga de cada tipo pero obrera esta lejos, ataca con las otras 3" {
+		self.agregar1HormigaDeCadaTipoA(hormigueroCercano)
+		obrera.desplazarseA([ 6, 0 ])
+		const soldadoIntruso = new HormigaSoldado()
+		hormigueroCercano.detectarIntruso(soldadoIntruso)
+		assert.equals(15, soldadoIntruso.vida())
+	}
+
+	test "hormigueroCualesquiera con 10 hormigas obrera y 10 soldado, ataca con las otras 10 cualesquiera" {
+		self.agregar10ObrerasY10Soldados(hormigueroCualesquiera)
+		hormigueroCualesquiera.detectarIntruso(langosta)
+		assert.that(langosta.recibioDanio())
+	}
+
+	test "hormigueroViolento con 1 hormiga de cada tipo , ataca solo con soldado" {
+		self.agregar1HormigaDeCadaTipoA(hormigueroViolento)
+		hormigueroViolento.detectarIntruso(langosta)
+		assert.equals(45, langosta.vida())
+	}
+
+}
+
+/** ********** 7 ********** **/
+describe "Tests de colonias de hormigueros" {
+
+	const hormigueroCercano = new HormigueroCercano()
+	const hormigueroCualesquiera = new HormigueroCualesquiera()
+	const hormigueroViolento = new HormigueroViolento()
+	const colonia = new Colonia()
+
+	method initialize() {
+		hormigueroCercano.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+		hormigueroViolento.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 5))
+		hormigueroViolento.aniadirHormiga(new HormigaSoldado())
+		hormigueroCualesquiera.aniadirHormiga(new HormigaZangano())
+		hormigueroCualesquiera.aniadirHormiga(new HormigaReina())
+		colonia.aniadirHormigueroOColonia(hormigueroCercano)
+		colonia.aniadirHormigueroOColonia(hormigueroViolento)
+		colonia.aniadirHormigueroOColonia(hormigueroCualesquiera)
+	}
+
+	test "colonia de hormigueros se defiende de langosta instrusa" {
+		colonia.defenderseDe(langosta)
+		assert.that(langosta.recibioDanio())
+	}
+
+	test "colonia de hormigueros reclamarAlimento hace que hormigueros reclamen alimento a sus hormigas" {
+		colonia.reclamarAlimento()
+		assert.equals(10, hormigueroCercano.depositoAlimento())
+		assert.equals(5, hormigueroViolento.depositoAlimento())
+		assert.equals(1, hormigueroCualesquiera.depositoAlimento())
+	}
+
+	test "colonia de hormigueros cantidadDeAlimentoTotal informa alimento de todos los hormigueros y hormigas" {
+		colonia.reclamarAlimento()
+		assert.equals(16, colonia.cantidadDeAlimentoTotal())
+	}
+
+}
+
+/** ********** 8 ********** **/
+describe "Tests de colonias con hormigueros y colonias" {
+
+	const hormigueroCercano = new HormigueroCercano()
+	const hormigueroCualesquiera = new HormigueroCualesquiera()
+	const hormigueroViolento = new HormigueroViolento()
+	const colonia = new Colonia()
+	const subColonia = new Colonia()
+
+	method initialize() {
+		hormigueroCercano.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+		hormigueroViolento.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 5))
+		hormigueroViolento.aniadirHormiga(new HormigaSoldado())
+		hormigueroCualesquiera.aniadirHormiga(new HormigaZangano())
+		hormigueroCualesquiera.aniadirHormiga(new HormigaReina())
+		colonia.aniadirHormigueroOColonia(hormigueroCercano)
+		colonia.aniadirHormigueroOColonia(subColonia)
+		subColonia.aniadirHormigueroOColonia(hormigueroViolento)
+		subColonia.aniadirHormigueroOColonia(hormigueroCualesquiera)
+	}
+
+	test "colonia de hormigueros y colonia se defiende de langosta instrusa" {
+		colonia.defenderseDe(langosta)
+		assert.that(langosta.recibioDanio())
+	}
+
+	test "colonia de hormigueros y colonia reclamarAlimento hace que hormigueros y colonias reclamen alimento a sus hormigas" {
+		colonia.reclamarAlimento()
+		assert.equals(10, hormigueroCercano.depositoAlimento())
+		assert.equals(5, hormigueroViolento.depositoAlimento())
+		assert.equals(1, hormigueroCualesquiera.depositoAlimento())
+	}
+
+	test "colonia de hormigueros y colonia cantidadDeAlimentoTotal informa alimento de todos los hormigueros, colonias y hormigas" {
+		colonia.reclamarAlimento()
+		assert.equals(16, colonia.cantidadDeAlimentoTotal())
+	}
+
+}
+
+/** Expediciones **/
+describe "Tests de Expediciones" {
+
+	const pera = new Alimento(peso = 15, posicion = [ 1, 0 ])
+	const hormiguero = new Hormiguero()
+
+	method initialize() {
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+		hormiguero.aniadirHormiga(new HormigaObrera(cantidadDeAlimento = 10))
+	}
+
+	method hormigasDeExpedicionNoEstanEnHormiguero() {
+		return hormiguero.expedicionActual().hormigasExpedicion().all({ hormiga => hormiguero.hormigas().contains(hormiga).negate() })
+	}
+
+	method hormigasDeExpedicionDepositanSuAlimento() {
+		return hormiguero.expedicionActual().hormigasExpedicion().all({ hormiga => hormiga.cantidadDeAlimento() === 0 })
+	}
+
+	/** 9 **/
+	test "Preparar una expedicion para alimento con 15 de peso, asigna 2 hormigas a la expedicion" {
+		hormiguero.prepararExpedicion(pera)
+		assert.equals(2, hormiguero.expedicionActual().hormigasExpedicion().size())
+	}
+
+	test "Preparar una expedicion asigna hormigas a la expedicion y las elimina del hormiguero" {
+		hormiguero.prepararExpedicion(pera)
+		assert.that(self.hormigasDeExpedicionNoEstanEnHormiguero())
+	}
+
+	test "Preparar una expedicion hace que hormigas asignadas depositen el alimento que llevan en el hormiguero" {
+		hormiguero.prepararExpedicion(pera)
+		assert.that(self.hormigasDeExpedicionDepositanSuAlimento())
+	}
+
+	/** 10 **/
+	test "Concretar una expedicion para alimento con 15 de peso, suma 13 alimento a hormiguero" {
+		hormiguero.prepararExpedicion(pera)
+		const depositoAlimentoAntesDeExpedicion = hormiguero.depositoAlimento()
+		hormiguero.concretarExpedicion()
+		assert.equals(depositoAlimentoAntesDeExpedicion + 13, hormiguero.depositoAlimento())
+	}
+
+	/** 11 **/
+	test "Desarmar una expedicion vuelve a aniadir las hormigas de la expedicion al hormiguero" {
+		hormiguero.prepararExpedicion(pera)
+		const cantHormigasExpedicion = hormiguero.expedicionActual().hormigasExpedicion().size()
+		const cantHormigasQuedaronEnHormiguero = hormiguero.hormigas().size()
+		hormiguero.concretarExpedicion()
+		hormiguero.desarmarExpedicion()
+		assert.equals(cantHormigasExpedicion + cantHormigasQuedaronEnHormiguero, hormiguero.hormigas().size())
+	}
+
+	/** 12 **/
+	test "Desarmar una expedicion sin que preparemos una, tira excepcion" {
+		assert.throwsExceptionWithMessage("No hay una expedicion activa, entonces no se puede desarmar una expedicion", { hormiguero.desarmarExpedicion()})
+	}
+
+	test "Desarmar una expedicion y volver a desarmarla, tira excepcion" {
+		hormiguero.prepararExpedicion(pera)
+		hormiguero.desarmarExpedicion()
+		assert.throwsExceptionWithMessage("No hay una expedicion activa, entonces no se puede desarmar una expedicion", { hormiguero.desarmarExpedicion()})
+	}
+
+	/** 13 **/
+	test "Concretar una expedicion sin que preparemos una, tira excepcion" {
+		assert.throwsExceptionWithMessage("No hay una expedicion activa, entonces no se puede enviar a recolectar alimento", { hormiguero.concretarExpedicion()})
+	}
+
+	test "Concretar una expedicion cuando ya se desarmo, tira excepcion" {
+		hormiguero.prepararExpedicion(pera)
+		hormiguero.desarmarExpedicion()
+		assert.throwsExceptionWithMessage("No hay una expedicion activa, entonces no se puede enviar a recolectar alimento", { hormiguero.concretarExpedicion()})
+	}
+}
+
+/** PREGUNTAS DEL Requerimiento 14:
+*	
+*	Debido a la logica implementada en el método aniadirHormiga() del hormiguero, saltará un error porque la langosta no entiende el mensaje asignarHormiguero(hormiguero)
+*
+*	Sin embargo, en caso que sí se puediera agregar una langosta al hormiguero, el sistema dejaría de funcionar correctamente  y fallaría porque la langosta no entiende los mismos mensajes que las hormigas. Por lo tanto rompería el Polimorfismo que usan los métodos del hormiguero.
+*
+**/
+
+
+
